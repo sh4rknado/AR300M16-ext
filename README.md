@@ -186,8 +186,6 @@ Remove the fast-cgi from general config (/etc/lighttpd/lighttpd.conf) and copy p
         Installing lighttpd-mod-simple_vhost (1.4.55-1) to root...
         Downloading http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/packages/lighttpd-mod-simple_vhost_1.4.55-1_mips_24kc.ipk
         Configuring lighttpd-mod-simple_vhost.
-        root@GL-AR300M:/etc/opkg# nano distfeeds.conf 
-        
 
 Configure the vhosts : 
 
