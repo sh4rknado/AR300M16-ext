@@ -140,6 +140,12 @@ Testing the resolution from dhcp
 
 ### Make VHOST in lighttpd
 
+Add Module mod_simple_vhost to your: 
+
+    nano /etc/lighttpd/lighttpd.conf
+    
+    server.modules = ( “mod_simple_vhost”, )
+
 
 ## Change loclation of gli-net webui to www/gli-frimware
 
