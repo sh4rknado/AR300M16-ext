@@ -147,7 +147,7 @@ Testing the resolution from dhcp
     cp /www/glinet-firmware/api /www/api
     rm /www/glinet-firmware/api
     
-### Make VHOST in lighttpd
+### Update fast-cgi configuration
 
 Remove the fast-cgi from general config (/etc/lighttpd/lighttpd.conf) and copy past the cgi config into /etc/lighttpd/conf.d/30-fastcgi.conf
 
@@ -162,6 +162,9 @@ Remove the fast-cgi from general config (/etc/lighttpd/lighttpd.conf) and copy p
                             )
                          )
         )
+
+
+### Make VHOST in lighttpd
 
 Configure the vhosts : 
 
@@ -182,8 +185,6 @@ Configure the vhosts :
                             "^/data/" => "/www/status-403.html",
                           )
         }
-
-
 
 # source link
 
