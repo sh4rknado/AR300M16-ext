@@ -135,7 +135,7 @@ Testing the resolution from dhcp
     Server:         192.168.8.1
     Address:        192.168.8.1#53
 
-    Name:   pineapple.lan
+    Name:   gl-admin.lan
     Address: 192.168.8.1
 
 ### Make VHOST in lighttpd
