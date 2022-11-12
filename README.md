@@ -101,14 +101,23 @@ If your device fails to read the lists due to small RAM such as 32MB, enable swa
 ### Verify swap status
     cat /proc/swaps
 
-## Update ligthttpd configuration 
+
+# Pineapple integration
+
+### DNS Configuration
+
+### Make VHOST in lighttpd
+
 
 ## Change loclation of gli-net webui to www/gli-frimware
 
 
+
 # source link
 
-Firmware ofw : https://dl.gl-inet.com/?model=ar300m16
+Amazon link: https://www.amazon.com/GL-iNet-GL-AR300M16-Ext-Pre-Installed-Performance-Programmable/dp/B07794JRC5
+
+Firmware ofw (OEM) : https://dl.gl-inet.com/?model=ar300m16
 
 Firmware upgrade : https://docs.gl-inet.com/en/3/tutorials/firmware_upgrade/
 
@@ -120,4 +129,6 @@ Quick start guide: https://docs.gl-inet.com/en/3/setup/mini_router/first_time_se
 
 Firmware source code : https://github.com/gl-inet/openwrt
 
-Amazon link: https://www.amazon.com/GL-iNet-GL-AR300M16-Ext-Pre-Installed-Performance-Programmable/dp/B07794JRC5
+LAMP Stack: https://openwrt.org/docs/guide-user/services/webserver/lamp#lighttpd1
+
+Lighthttpd: https://openwrt.org/docs/guide-user/services/webserver/lighttpd
