@@ -123,7 +123,20 @@ Restart the dnsmasq service
 Testing the resolution from dhcp
 
     nslookup pineapple.lan
+    
+    Server:         192.168.8.1
+    Address:        192.168.8.1#53
+
+    Name:   pineapple.lan
+    Address: 192.168.8.1
+   
     nslookup gl-admin.lan
+    
+    Server:         192.168.8.1
+    Address:        192.168.8.1#53
+
+    Name:   pineapple.lan
+    Address: 192.168.8.1
 
 ### Make VHOST in lighttpd
 
