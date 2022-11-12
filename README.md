@@ -138,16 +138,50 @@ Testing the resolution from dhcp
     Name:   gl-admin.lan
     Address: 192.168.8.1
 
+### Change location for separe webui
+
+    mkdir /glinet-firmware
+    cp -avr /www /glinet-firmware
+    rm -rfv /www/*
+    mv /glinet-firmware /www
+    cp /www/glinet-firmware/api /www/api
+    rm /www/glinet-firmware/api
+    
 ### Make VHOST in lighttpd
 
-Add Module mod_simple_vhost to your: 
+Remove the fast-cgi from general config (/etc/lighttpd/lighttpd.conf) and copy past the cgi config into /etc/lighttpd/conf.d/30-fastcgi.conf
 
-    nano /etc/lighttpd/lighttpd.conf
-    
-    server.modules = ( “mod_simple_vhost”, )
+        fastcgi.server = (
+                "/api" => (
+                        "api.handler" => (
+                                "socket" => "/tmp/api.socket",
+                                "check-local" => "disable",
+                                "bin-path" => "/www/api",
+                                "max-procs" => 1,
+                                "allow-x-send-file" => "enable"
+                            )
+                         )
+        )
 
+Configure the vhosts : 
 
-## Change loclation of gli-net webui to www/gli-frimware
+        server.modules += ( "mod_simple_vhost" )
+
+        $HTTP["host"] =~ "^gl-admin.h(\:[0-9]*)?$" { 
+            dir-listing.activate = "disable" 
+            server.document-root = "/www/glinet-firmware/"
+            $HTTP["url"] =~ "^/cgi-bin" {
+                cgi.assign += ( "" => "" )
+            }
+        }
+
+        $HTTP["host"] =~ "^pineapple.h(\:[0-9]*)?$" { 
+            dir-listing.activate = "disable" 
+            server.document-root = "/www/pineapple"
+            url.redirect = ( "^/config/" => "/www/status-403.html",
+                            "^/data/" => "/www/status-403.html",
+                          )
+        }
 
 
 
