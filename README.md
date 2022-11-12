@@ -163,8 +163,31 @@ Remove the fast-cgi from general config (/etc/lighttpd/lighttpd.conf) and copy p
                          )
         )
 
+### add the openwrt repository
+
+        nano /etc/opkg/distfeeds.conf
+
+        # Openwrt Package 19.07.9
+        src/gz openwrt_core http://downloads.openwrt.org/releases/19.07.9/targets/ath79/generic/packages
+        src/gz openwrt_kmods http://downloads.openwrt.org/releases/19.07.9/targets/ath79/generic/kmods/4.14.267-1>
+        src/gz openwrt_base http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/base
+        src/gz openwrt_freifunk http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/freifunk
+        src/gz openwrt_luci http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/luci
+        src/gz openwrt_packages http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/packages
+        src/gz openwrt_routing http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/routing
+        src/gz openwrt_telephony http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/telephony
+
+        opkg update 
 
 ### Make VHOST in lighttpd
+
+        opkg install lighttpd-mod-simple_vhost
+        
+        Installing lighttpd-mod-simple_vhost (1.4.55-1) to root...
+        Downloading http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/packages/lighttpd-mod-simple_vhost_1.4.55-1_mips_24kc.ipk
+        Configuring lighttpd-mod-simple_vhost.
+        root@GL-AR300M:/etc/opkg# nano distfeeds.conf 
+        
 
 Configure the vhosts : 
 
