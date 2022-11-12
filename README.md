@@ -1,4 +1,9 @@
-# AR300M16-ext
+# System Information
+
+
+
+
+# System Preparation
 
 ## Make extroot 
 
@@ -100,3 +105,19 @@ If your device fails to read the lists due to small RAM such as 32MB, enable swa
 
 ## Change loclation of gli-net webui to www/gli-frimware
 
+
+# source link
+
+Firmware ofw : https://dl.gl-inet.com/?model=ar300m16
+
+Firmware upgrade : https://docs.gl-inet.com/en/3/tutorials/firmware_upgrade/
+
+Unbrick router: https://docs.gl-inet.com/en/2/troubleshooting/debrick/
+
+open source code : https://openwrt.org/toh/gl.inet/gl-ar300m
+
+Quick start guide: https://docs.gl-inet.com/en/3/setup/mini_router/first_time_setup/
+
+Firmware source code : https://github.com/gl-inet/openwrt
+
+Amazon link: https://www.amazon.com/GL-iNet-GL-AR300M16-Ext-Pre-Installed-Performance-Programmable/dp/B07794JRC5
