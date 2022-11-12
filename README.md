@@ -106,6 +106,25 @@ If your device fails to read the lists due to small RAM such as 32MB, enable swa
 
 ### DNS Configuration
 
+Add AAA record into the DNS resolution (complete file is in the overlay folder)
+
+    config domain 'gl-admin'
+          option name 'gl-admin.lan'
+          option ip '192.168.8.1'
+
+    config domain 'pineapple'
+          option name 'pineapple.lan'
+          option ip '192.168.8.1'
+
+Restart the dnsmasq service 
+
+    /etc/init.d/dnsmasq restart
+
+Testing the resolution from dhcp
+
+    nslookup pineapple.lan
+    nslookup gl-admin.lan
+
 ### Make VHOST in lighttpd
 
 
