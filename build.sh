@@ -1,5 +1,5 @@
 #!/bin/bash
 
 rm ./tmp -rf
-cp scripts/config .config
+cp scripts/configuration .config
 make V=s -j5
