@@ -1,228 +1,215 @@
-# System Information
+Overview
+========
 
+This repo is maintained by GL.iNet team, which is used to release stock firmware.
 
+Feature
+=======
 
+- Support latest device of GL.iNet
+- Support kernel driver which isn't support by kernel-tree
+- Keep updating with stock firmware
 
-# System Preparation
+Branches Introduction
+=======
+- **openwrt-18.06-siflower** Only supports SF1200
 
-## Make extroot 
+- **openwrt-18.06-s1300** Support compiling openwrt firmware for S1300
 
-source link : https://openwrt.org/docs/guide-user/additional-software/extroot_configuration
+    If you need to flash OpenWrt firmware on S1300, you need to modify the partition table using the intermediate firmware in this branch
 
-### install dependencies
+- **openwrt-18.06** Compile versions before 3.105 firmware based on this source code
 
-    opkg update
-    opkg install block-mount kmod-fs-ext4 e2fsprogs parted
-    parted -s /dev/sda -- mklabel gpt mkpart extroot 2048s -2048s
+- **openwrt-18.06.5** Compile version 3.105 firmware based on this source code
 
-### Configuring rootfs_data
+- **openwrt-19.07.7** Compile version 3.201 firmware based on this source code
 
-    DEVICE="$(sed -n -e "/\s\/overlay\s.*$/s///p" /etc/mtab)"
-    uci -q delete fstab.rwm
-    uci set fstab.rwm="mount"
-    uci set fstab.rwm.device="${DEVICE}"
-    uci set fstab.rwm.target="/rwm"
-    uci commit fstab
+- **openwrt-19.07.8** Under development, not recommended
 
- Or, you can identify the rootfs_data partition manually, if it is in an MTD partition: 
- 
-    grep -e rootfs_data /proc/mtd
+- **openwrt-trunk** Compile S1300 firmware supporting emmc
 
-If your rootfs_data is a UBIFS volume, the above will not work. However, the sed command at the start of the section should pick up the correct device.
+**For example, if you want to use openwrt-19.07.7 to compile the production firmware, you need to use *```git checkout openwrt-19.07.7```* command to switch openwrt-19.07.7 branch.**
 
-The /rwm mount will not mount via block until you've already successfully booted into your extroot configuration. This is because block has a restriction to only mount from devices that are not currently mounted. And /rwm should already be mounted at /overlay. Once booted into your extroot, you can edit /rwm/upper/etc/config/fstab to change your extroot configuration (or temporarily disable it) should you ever need to. 
+Product Branch Relationship Table
+=======
+**Support Branch:** Branches that support this product
 
+**Official OpenWrt :** Official OpenWrt supports this product from the current release
+| Product | Support Branch | Official OpenWrt | Remark |
+| :-----| :----- | :---- | :---- |
+| AR150 | openwrt-18.06<br>openwrt-18.06.5<br>openwrt-19.07.7 | >17.01 |  |
+| MIFI | openwrt-18.06<br>openwrt-18.06.5<br>openwrt-19.07.7 | >17.01 |  |
+| AR300M | openwrt-18.06<br>openwrt-18.06.5<br>openwrt-19.07.7 | 17.01~19.07(nor)^<br>>21.02(nor+nand)^ | |
+| MT300N-V2 | openwrt-18.06<br>openwrt-18.06.5<br>openwrt-19.07.7 | >18.06 | GL fireware wifi drivers are closed source, we do not guarantee that OpenWrt drivers are stable |
+| B1300 | openwrt-18.06<br>openwrt-18.06.5<br>openwrt-19.07.7 | >18.06 | GL fireware use QSDK, if you use openwrt to compile firmware, there isn't mesh function|
+| USB150 | openwrt-18.06<br>openwrt-18.06.5<br>openwrt-19.07.7 | >18.06 |  |
+| AR750 | openwrt-18.06<br>openwrt-18.06.5<br>openwrt-19.07.7 | >18.06 |  |
+| AR750S | openwrt-18.06<br>openwrt-18.06.5<br>openwrt-19.07.7 | 19.07(nor)^<br>>21.02(nor+nand)^ | |
+| X750 | openwrt-18.06<br>openwrt-19.07.7 | >19.07 |  |
+| S1300 | openwrt-19.07.7(nor)^<br>openwrt-trunk(emmc)^ | >21.02(nor)^ | |
+| N300 | openwrt-18.06<br>openwrt-19.07.7 | >21.02 | GL fireware wifi drivers are closed source, we do not guarantee that OpenWrt drivers are stable |
+| X1200 | openwrt-18.06<br>openwrt-19.07.7 | N | Must choose ath10k-firmware-qca9888-ct-htt and kmod-ath10k-ct packages |
+| MV1000 | openwrt-19.07.7 | >21.02 |  |
+| E750 | openwrt-18.06<br>openwrt-19.07.7 | >21.02 |  |
+| AP1300 | We don't make patch for this project, so you must use the official OpenWrt | >21.02 |  |
+| B2200 | openwrt-trunk(emmc) | >21.02 |  |
+| MT1300 | openwrt-19.07.7 | >21.02 | GL fireware wifi drivers are closed source, we do not guarantee that OpenWrt drivers are stable |
+| XE300 | openwrt-19.07.7 | N |  |
+| X300B | openwrt-18.06.5<br>openwrt-19.07.7 | N |  |
+| SF1200 |  |  |  |
+| AX1800 |  |  |  |
 
-  ### Configuring extroot
-  
- See what partitions you have using the following command: 
- 
-     block info
+^nor: Compiled firmware can only run on nor flash
 
- You will see similar output: 
- 
-    /dev/mtdblock2: UUID="9fd43c61-c3f2c38f-13440ce7-53f0d42d" VERSION="4.0" MOUNT="/rom" TYPE="squashfs"
-    /dev/mtdblock3: MOUNT="/overlay" TYPE="jffs2"
-    /dev/sda1: UUID="fdacc9f1-0e0e-45ab-acee-9cb9cc8d7d49" VERSION="1.4" TYPE="ext4"
- 
-Here mtdblock are the devices in internal flash memory, and /dev/sda1 is the partition on a USB flash drive that we have already formatted to ext4 like this: 
-  
-    DEVICE="/dev/sda1"
-    mkfs.ext4 -L extroot ${DEVICE}
+^nor+nand: Can compile the firmware that runs on nor flash and nand flash
 
-Now we configure the selected partition as new overlay via fstab UCI subsystem:
+^nor+emmc: Can compile the firmware that runs on nor flash and emmc
 
-    eval $(block info ${DEVICE} | grep -o -e "UUID=\S*")
-    uci -q delete fstab.overlay
-    uci set fstab.overlay="mount"
-    uci set fstab.overlay.uuid="${UUID}"
-    uci set fstab.overlay.target="/overlay"
-    uci commit fstab
+Prerequisites
+=============
 
-### Transferring data
+To build your own firmware you need to have access to a Linux, BSD or MacOSX system (case-sensitive filesystem required). Cygwin will not be supported because of the lack of case sensitiveness in the file system. Ubuntu is usually recommended.
 
-We now transfer the content of the current overlay to the external drive and reboot the device to apply changes:
+Installing Packages
+-------------------
 
-    mount ${DEVICE} /mnt
-    tar -C /overlay -cvf - . | tar -C /mnt -xf -
-    reboot
-    
-### Testing
+```bash
+$ sudo apt-get update
+$ sudo apt-get install build-essential subversion libncurses5-dev zlib1g-dev gawk gcc-multilib flex git-core gettext libssl-dev
+```
 
-Web interface instructions
+Downloading Source
+------------------
 
-    LuCI → System → Mount Points should show USB partition mounted as overlay.
-    LuCI → System → Software should show free space of overlay partition.
+```
+$ git clone https://github.com/gl-inet/openwrt.git openwrt
+$ cd openwrt
+```
 
-    grep -e /overlay /etc/mtab
-    /dev/sda1 /overlay ext4 rw,relatime,data=ordered
-    overlayfs:/overlay / overlay rw,noatime,lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work
+Updating Feeds
+--------------
 
-    df overlay/
-    Filesystem           1K-blocks      Used Available Use% Mounted on
-    /dev/sda1              7759872    477328   7221104   6% /overlay
-    overlayfs:/overlay     7759872    477328   7221104   6% /
+```
+$ ./scripts/feeds update -a
+$ ./scripts/feeds install -a
+```
 
+Note that if you have all the source already, just put them in your *openwrt/dl* folder and you save time to download resource.
 
-## Swap
-If your device fails to read the lists due to small RAM such as 32MB, enable swap.
+Clear temp buffer
+-----------------
 
-### Create swap file
-    dd if=/dev/zero of=/overlay/swap bs=1M count=100
-    mkswap /overlay/swap
- 
-### Enable swap file
-    uci -q delete fstab.swap
-    uci set fstab.swap="swap"
-    uci set fstab.swap.device="/overlay/swap"
-    uci commit fstab
-    /etc/init.d/fstab boot
- 
-### Verify swap status
-    cat /proc/swaps
+```
+$ rm ./tmp -rf
+```
 
 
-# Pineapple integration
-
-### DNS Configuration
-
-Add AAA record into the DNS resolution (complete file is in the overlay folder)
-
-    config domain 'gl-admin'
-          option name 'gl-admin.lan'
-          option ip '192.168.8.1'
+Compile firmware for NOR flash
+=======
+Suitable for all products
 
-    config domain 'pineapple'
-          option name 'pineapple.lan'
-          option ip '192.168.8.1'
+Select target
+-------------
+Issueing **make menuconfig** to select a GL.iNet device, for example AR300M.
 
-Restart the dnsmasq service 
+```
+$ make menuconfig
+```
 
-    /etc/init.d/dnsmasq restart
+Please select options as following:
 
-Testing the resolution from dhcp
+	Target System (Atheros AR7xxx/AR9xxx)  --->
 
-    nslookup pineapple.lan
-    
-    Server:         192.168.8.1
-    Address:        192.168.8.1#53
+	Subtarget (Generic)  --->
 
-    Name:   pineapple.lan
-    Address: 192.168.8.1
-   
-    nslookup gl-admin.lan
-    
-    Server:         192.168.8.1
-    Address:        192.168.8.1#53
+	Target Profile (GL-AR300M)  --->
 
-    Name:   gl-admin.lan
-    Address: 192.168.8.1
+Then select common software package (as you need),such as USB driver as following,
 
-### Change location for separe webui
+    GL.iNet packages choice shortcut  --->
 
-    mkdir /glinet-firmware
-    cp -avr /www /glinet-firmware
-    rm -rfv /www/*
-    mv /glinet-firmware /www
-    cp /www/glinet-firmware/api /www/api
-    rm /www/glinet-firmware/api
-    
-### Update fast-cgi configuration
+       [ ] Select basic packages
+           Select VPN  --->
+       [*] Support storage
+       [*] Support USB
+       [ ] Support webcam
+       [ ] Support rtc
 
-Remove the fast-cgi from general config (/etc/lighttpd/lighttpd.conf) and copy past the cgi config into /etc/lighttpd/conf.d/30-fastcgi.conf
+If the package you want to brush depends on the GL base package, please Select **Select basic packages** as well. Which packages the GL base package contains can be found in *config/config-glinet.in*
 
-        fastcgi.server = (
-                "/api" => (
-                        "api.handler" => (
-                                "socket" => "/tmp/api.socket",
-                                "check-local" => "disable",
-                                "bin-path" => "/www/api",
-                                "max-procs" => 1,
-                                "allow-x-send-file" => "enable"
-                            )
-                         )
-        )
+Compile
+-------
+Simply running **make V=s -j5** will build your own firmware. It will download all sources, build the cross-compile toolchain, the kernel and all choosen applications which is spent on several hours.
 
-### add the openwrt repository
+```
+$ make V=s -j5
+```
 
-        nano /etc/opkg/distfeeds.conf
 
-        # Openwrt Package 19.07.9
-        src/gz openwrt_core http://downloads.openwrt.org/releases/19.07.9/targets/ath79/generic/packages
-        src/gz openwrt_kmods http://downloads.openwrt.org/releases/19.07.9/targets/ath79/generic/kmods/4.14.267-1>
-        src/gz openwrt_base http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/base
-        src/gz openwrt_freifunk http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/freifunk
-        src/gz openwrt_luci http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/luci
-        src/gz openwrt_packages http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/packages
-        src/gz openwrt_routing http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/routing
-        src/gz openwrt_telephony http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/telephony
+Notice **V=s**, this parameter is purpose to check info when compile.
+**-j5**, this parameter is for choosing the cpu core number, 5 means using 4 cores.
+If there’s error, please use **make V=s -j1** to recompile, and check the error.
 
-        opkg update 
+Target file location for NOR flash
+-----------------------------------
+The final firmware file is **bin/ar71xx/openwrt-ar71xx-generic-gl-ar300m-squashfs-sysupgrade.bin**
+so this file is the firmware we need, please update firmware again.
+Please refer to other instructions for further operations. Such as flash the firmware, etc.
 
-### Make VHOST in lighttpd
 
-        opkg install lighttpd-mod-simple_vhost
-        
-        Installing lighttpd-mod-simple_vhost (1.4.55-1) to root...
-        Downloading http://downloads.openwrt.org/releases/19.07.9/packages/mips_24kc/packages/lighttpd-mod-simple_vhost_1.4.55-1_mips_24kc.ipk
-        Configuring lighttpd-mod-simple_vhost.
+Compile firmware for NAND flash
+=====
+Applicable to GL-AR300M GL-AR750S GL-E750 GL-X1200 GL-X750
 
-Configure the vhosts : 
+Select target
+-------------
+Issueing **make menuconfig** to select a GL.iNet device, for example AR300M.
 
-        server.modules += ( "mod_simple_vhost" )
+```
+$ make menuconfig
+```
 
-        $HTTP["host"] =~ "^gl-admin.h(\:[0-9]*)?$" { 
-            dir-listing.activate = "disable" 
-            server.document-root = "/www/glinet-firmware/"
-            $HTTP["url"] =~ "^/cgi-bin" {
-                cgi.assign += ( "" => "" )
-            }
-        }
+Please select options as following:
 
-        $HTTP["host"] =~ "^pineapple.h(\:[0-9]*)?$" { 
-            dir-listing.activate = "disable" 
-            server.document-root = "/www/pineapple"
-            url.redirect = ( "^/config/" => "/www/status-403.html",
-                            "^/data/" => "/www/status-403.html",
-                          )
-        }
+	Target System (Atheros AR7xxx/AR9xxx)  --->
 
-# Source link
+	Subtarget (Generic devices with NAND flash)  --->
 
-Amazon link: https://www.amazon.com/GL-iNet-GL-AR300M16-Ext-Pre-Installed-Performance-Programmable/dp/B07794JRC5
+	Target Profile (GL-AR300M NAND)  --->
 
-Firmware ofw (OEM) : https://dl.gl-inet.com/?model=ar300m16
+Then select common software package (as you need),such as USB driver as following,
 
-Firmware upgrade : https://docs.gl-inet.com/en/3/tutorials/firmware_upgrade/
+    GL.iNet packages choice shortcut  --->
 
-Unbrick router: https://docs.gl-inet.com/en/2/troubleshooting/debrick/
+       [ ] Select basic packages
+           Select VPN  --->
+       [*] Support storage
+       [*] Support USB
+       [ ] Support webcam
+       [ ] Support rtc
 
-open source code : https://openwrt.org/toh/gl.inet/gl-ar300m
+If the package you want to brush depends on the GL base package, please Select **Select basic packages** as well. Which packages the GL base package contains can be found in *config/config-glinet.in*
 
-Quick start guide: https://docs.gl-inet.com/en/3/setup/mini_router/first_time_setup/
+Compile
+-------
+Simply running **make V=s -j5** will build your own firmware. It will download all sources, build the cross-compile toolchain, the kernel and all choosen applications which is spent on several hours.
 
-Firmware source code : https://github.com/gl-inet/openwrt
+```
+$ make V=s -j5
+```
 
-LAMP Stack: https://openwrt.org/docs/guide-user/services/webserver/lamp#lighttpd1
+Notice **V=s**, this parameter is purpose to check info when compile.
+**-j5**, this parameter is for choosing the cpu core number, 5 means using 4 cores.
+If there’s error, please use **make V=s -j1** to recompile, and check the error.
 
-Lighthttpd: https://openwrt.org/docs/guide-user/services/webserver/lighttpd
+Target file location for NAND flash
+-----------------------------------
+
+The final firmware file is:
+
+**bin/ar71xx/openwrt-ar71xx-nand-gl-ar300m-rootfs-squashfs.ubi**
+
+**bin/ar71xx/openwrt-ar71xx-nand-gl-ar300m-squashfs-sysupgrade.tar**
+
+So this file is the firmware we need, please update firmware again.
+Please refer to other instructions for further operations. Such as flash the firmware, etc.

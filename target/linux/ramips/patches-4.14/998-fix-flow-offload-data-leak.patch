@@ -1,0 +1,95 @@
+--- a/net/netfilter/xt_FLOWOFFLOAD.c
++++ b/net/netfilter/xt_FLOWOFFLOAD.c
+@@ -14,11 +14,13 @@
+ #include <net/netfilter/nf_conntrack_extend.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_flow_table.h>
++#include <linux/proc_fs.h>
+ 
+ static struct nf_flowtable nf_flowtable;
+ static HLIST_HEAD(hooks);
+ static DEFINE_SPINLOCK(hooks_lock);
+ static struct delayed_work hook_work;
++static struct proc_dir_entry *entry = NULL;
+ 
+ struct xt_flowoffload_hook {
+ 	struct hlist_node list;
+@@ -391,6 +393,59 @@ static struct notifier_block flow_offloa
+ 	.notifier_call	= flow_offload_netdev_event,
+ };
+ 
++static int proc_show(struct seq_file *s, void *v)
++{
++	seq_printf(s, "please input device name\n");
++    return 0;
++}
++
++static int proc_open(struct inode *inode, struct file *file)
++{
++    return single_open(file, proc_show, NULL);
++}
++
++static ssize_t proc_write(struct file *file, const char __user *buf, size_t size, loff_t *ppos)
++{
++	struct net_device *dev;
++    char ifname[IFNAMSIZ] = {0};
++
++    if (size > IFNAMSIZ - 1) {
++        return -EINVAL;
++	}
++
++    if (copy_from_user(ifname, buf, size)) {
++        return -EFAULT;
++	}
++
++	dev = dev_get_by_name(&init_net, ifname);
++	if (dev) {
++		nf_flow_table_cleanup(dev_net(dev), dev);
++		dev_put(dev);
++		dev = dev_get_by_name(&init_net, "eth0");
++		if (dev) {
++			dev->netdev_ops->ndo_stop(dev);
++			dev->netdev_ops->ndo_open(dev);
++			dev_put(dev);
++		} else {
++			printk(KERN_ERR "can't find eth0 device\n");
++		}
++	} else {
++		printk(KERN_ERR "can't find %s device\n", ifname);
++		return -EFAULT;
++	}
++
++    return size;
++}
++
++const static struct file_operations proc_ops = {
++    .owner      = THIS_MODULE,
++    .open       = proc_open,
++    .read       = seq_read,
++    .write      = proc_write,
++    .llseek     = seq_lseek,
++    .release    = single_release
++};
++
+ static int __init xt_flowoffload_tg_init(void)
+ {
+ 	int ret;
+@@ -407,6 +462,10 @@ static int __init xt_flowoffload_tg_init
+ 	if (ret)
+ 		xt_flowoffload_table_cleanup(&nf_flowtable);
+ 
++	entry = proc_create("flow_offload_clean", 0644, init_net.proc_net, &proc_ops);
++	if (!entry)
++		return -ENOMEM;
++
+ 	return ret;
+ }
+ 
+@@ -415,6 +474,7 @@ static void __exit xt_flowoffload_tg_exi
+ 	xt_unregister_target(&offload_tg_reg);
+ 	xt_flowoffload_table_cleanup(&nf_flowtable);
+ 	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
++	proc_remove(entry);
+ }
+ 
+ MODULE_LICENSE("GPL");
