@@ -1,0 +1,12 @@
+.config.old
+bin/
+build_dir/
+dl/
+feeds/
+key-build
+key-build.pub
+key-build.ucert
+key-build.ucert.revoke
+package/feeds/
+staging_dir/
+tmp/
