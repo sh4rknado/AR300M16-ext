@@ -3,4 +3,4 @@
 make image \
      PROFILE="gl-ar300m" \
      FILES="overlay" \
-     PACKAGES="nano"
+     PACKAGES="python-logging python-openssl python-sqlite3 python-codecs"
