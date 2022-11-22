@@ -1,0 +1,41 @@
+#!/bin/ash
+
+# Close SSH
+/etc/init.d/sshd disable
+/etc/init.d/sshd stop
+
+# Get Device
+if [[ $(cat /proc/cpuinfo | grep 'machine' | awk {'print $6'}) == "NANO" ]]; then
+    device="NANO"
+elif [[ $(cat /proc/cpuinfo | grep 'machine' | awk {'print $6'}) == "TETRA" ]]; then
+    device="TETRA"
+fi
+
+# Enable fstab and mount
+/etc/init.d/fstab enable
+block mount
+
+# Compile Python modules for TETRA.
+if [[ $device == "TETRA" ]]; then
+	python -m compileall
+fi
+
+logger "== Performing WiFi Config"
+# Enable both WiFi interfaces
+wifi config > /etc/config/wireless
+sleep 1
+wifi
+logger "== Perfomed WiFi Config"
+
+/etc/init.d/cron enable
+/etc/init.d/cron start
+
+# Clean up and finish
+rm -rf /etc/pineapple/init
+
+# Reset LED
+/etc/init.d/led restart
+
+echo -e "\n# Enter commands above this line\nexit 0" > /etc/rc.local
+
+exit 0

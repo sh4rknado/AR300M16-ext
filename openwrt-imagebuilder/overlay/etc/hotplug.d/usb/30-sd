@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Get Version and Device
+if [[ $(cat /proc/cpuinfo | grep 'machine' | awk {'print $6'}) == "NANO" ]]; then
+	device="NANO"
+fi
+
+if [[ $device == "NANO" ]]; then
+        [[ $PRODUCT == "5e3/745/933" || $PRODUCT == "5e3/745/931" ]] && {
+                [[ $ACTION == "add" ]] && {
+                        echo "add" > /tmp/sd_action
+                } || {
+                        echo "remove" > /tmp/sd_action
+                }
+        }
+fi

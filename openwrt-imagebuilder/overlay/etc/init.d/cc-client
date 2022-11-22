@@ -1,0 +1,28 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2018 Hak5.org
+
+START=99
+
+dont_stop(){
+        killall -9 pineapd
+        cc-client /etc/device.config
+        run_var=$?
+        while [ $run_var -eq 42 ]; do
+                killall -9 pineapd
+                cc-client /etc/device.config
+                run_var=$?
+        done
+}
+
+start() {
+        dont_stop &
+}
+
+stop() {
+    killall cc-client
+}
+
+restart() {
+    stop
+    start
+}

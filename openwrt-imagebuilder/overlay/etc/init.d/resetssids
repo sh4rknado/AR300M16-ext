@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+# Copyright (c) 2019 Hak5 LLC
+
+START=90
+
+start() {
+	/usr/sbin/resetssids &>/dev/null &
+	sleep 1
+}
+
+boot() {
+	start
+}

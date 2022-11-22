@@ -1,0 +1,17 @@
+#!/bin/sh /etc/rc.common
+
+START=98
+
+start() {
+  status=$(uci get landingpage.@settings[0].autostart)
+  [[ $status -ne 0 ]] && {
+    iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination $(uci get network.lan.ipaddr):80
+    iptables -t nat -A POSTROUTING -j MASQUERADE
+    cp /pineapple/modules/Configuration/api/landingpage_index.php /www/index.php
+  }
+
+  if [[ $(cat /proc/cpuinfo | grep 'machine' | awk {'print $6'}) == "NANO" ]]; then
+      echo 0 > /sys/class/gpio/gpio23/value
+  fi
+
+}

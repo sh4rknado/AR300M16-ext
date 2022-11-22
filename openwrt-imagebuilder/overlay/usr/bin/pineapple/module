@@ -1,0 +1,36 @@
+#!/bin/bash
+
+listModules() {
+	echo "Modules with CLI capabilities:"
+	ls /pineapple/modules | while read moduleFolder; do 
+		if [[ -f "/pineapple/modules/$moduleFolder/executable/executable" ]]; then
+			echo -e "\t$moduleFolder"
+		fi
+	done
+}
+
+executeModule() {
+	moduleName="$1"
+	modulePath="/pineapple/modules/$moduleName/executable/executable"
+	shift 1
+	if [[ -f $modulePath ]]; then
+		chmod +x $modulePath
+		$modulePath "$@"
+	else
+		echo "This module doesn't exit or doesn't have an executable version."
+	fi
+}
+
+showHelp() {
+	echo "Usage: $0"
+	echo -e "\tlist - lists all modules"
+	echo -e "\t[module name] [args] - execute a module"
+}
+
+if [[ $1 == "list" ]]; then
+	listModules
+elif [[ $1 == "" ]]; then
+	showHelp
+else
+	executeModule "$@"
+fi

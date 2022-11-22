@@ -1,0 +1,41 @@
+<h3>Changelog for 2.7.0:</h3>
+<ul>
+    <li>General</li>
+    <ul>
+        <li>OpenWRT version is now 19.07.2.</li>
+        <li>Kernel has been updated from 4.14.133 to 4.14.171.</li>
+        <li>Fixed an issue where OpenVPN would cause a kernel panic upon establishing tunnel.</li>
+    </ul>
+
+    <li>Recon</li>
+    <ul>
+        <li>Fixed an issue where live scans would fail on the WiFi Pineapple TETRA.</li>
+    </ul>
+
+    <li>Reporting</li>
+    <ul>
+        <li>Fixed an issue where emails would not be sent.</li>
+        <li>Improved the user experience by automatically saving email settings when testing emails.</li>
+        <li>Improved the user experience by forcing an email to send when testing, regardless of whether the "Send Email" option was checked.</li>
+    </ul>
+
+    <li>Advanced</li>
+    <ul>
+        <li>Fixed an issue where swap would not be mounted automatically on the NANO's SD Card.</li>
+        <li>Renamed "USB" panel to "USB & Storage".</li>
+    </ul>
+
+    <li>Misc</li>
+    <ul>
+        <li>Added SSLSplit package to repositories.</li>
+        <ul>
+            <li>This fixes the SSLSplit module.</li>
+        </ul>
+        <li>Updated Kismet package in repositories.</li>
+        <li>Updated Kismet-RemoteCap package in repositories.</li>
+    </ul>
+</ul>
+
+<p>
+    <span style="color: red">♥</span> - The Hak5 Development Team<br/>
+</p>

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Get Device
+if [[ $(cat /proc/cpuinfo | grep 'machine' | awk {'print $6'}) == "NANO" ]]; then
+    device="NANO"
+fi
+
+rebind_sd() {
+    DEVICE=$(find / -name idProduct -exec grep -l 0745 {} + | awk -F '/' '{ print $(NF-1) }')
+    echo $DEVICE  > /sys/bus/usb/drivers/usb/unbind
+    echo $DEVICE  > /sys/bus/usb/drivers/usb/bind
+}
+
+if [[ $device == "NANO" ]]; then
+	rebind_sd
+fi
