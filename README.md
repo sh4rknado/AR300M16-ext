@@ -1,15 +1,14 @@
+# WiFi Pinneapple GLINET AR300M16-EXT 
+
 ## RTL8812AU/21AU and RTL8814AU drivers
-Only for use with Linux & Android
+========
 
 [![Monitor mode](https://img.shields.io/badge/monitor%20mode-working-brightgreen.svg)](#)
 [![Frame Injection](https://img.shields.io/badge/frame%20injection-working-brightgreen.svg)](#)
-[![GitHub version](https://raster.shields.io/badge/version-v5.6.4.2-lightgrey.svg)](#)
-[![Build Status](https://travis-ci.org/aircrack-ng/rtl8812au.svg?branch=openwrt-19.0.7)](https://travis-ci.org/aircrack-ng/rtl8812au)
+[![GitHub version](https://raster.shields.io/badge/version-openwrt_19.0.7-lightgrey.svg)](#)
 <br>
 [![aircrack-ng](https://img.shields.io/badge/aircrack--ng-supported-blue.svg)](https://github.com/aircrack-ng/aircrack-ng)
 [![wifite2](https://img.shields.io/badge/wifite2-supported-blue.svg)](https://github.com/kimocoder/wifite2)
-
-
 
 Overview
 ========
