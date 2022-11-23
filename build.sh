@@ -3,7 +3,7 @@ current_folder=$(pwd)
 
 # clean all old files
 rm ./tmp -rf
-git clean -xfd
+#git clean -xfd
 
 # Making files
 ./scripts/feeds update -a
