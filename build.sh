@@ -4,7 +4,7 @@
 # clean all old files
 rm ./tmp -rf
 rm -rfv openwrt-imagebuilder
-git clean -xfd
+#git clean -xfd
 
 # Making files
 ./scripts/feeds update -a
@@ -20,6 +20,6 @@ mv openwrt-imagebuilder-ar71xx-generic.Linux-x86_64 ~/AR300M16-ext/openwrt-image
 rm -rfv openwrt-imagebuilder-ar71xx-generic.Linux-x86_64/
 
 # copy builder
-cp -avr ~/AR300M16-ext/overlay ~/AR300M16-ext/openwrt-imagebuilder/overlay/
+cp -avr overlay ~/AR300M16-ext/openwrt-imagebuilder/overlay/
 mv ~/AR300M16-ext/openwrt-imagebuilder/overlay/build.sh ~/AR300M16-ext/openwrt-imagebuilder/build.sh
 mv ~/AR300M16-ext/openwrt-imagebuilder/overlay/repositories.conf ~/AR300M16-ext/openwrt-imagebuilder/repositories.conf
