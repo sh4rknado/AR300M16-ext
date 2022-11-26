@@ -20,6 +20,7 @@ mv openwrt-imagebuilder-ar71xx-generic.Linux-x86_64 ~/AR300M16-ext/openwrt-image
 rm -rfv openwrt-imagebuilder-ar71xx-generic.Linux-x86_64/
 
 # copy builder
-cp -avr overlay ~/AR300M16-ext/openwrt-imagebuilder/overlay/
-mv ~/AR300M16-ext/openwrt-imagebuilder/overlay/build.sh ~/AR300M16-ext/openwrt-imagebuilder/build.sh
-mv ~/AR300M16-ext/openwrt-imagebuilder/overlay/repositories.conf ~/AR300M16-ext/openwrt-imagebuilder/repositories.conf
+cd  ~/AR300M16-ext/openwrt-imagebuilder/
+cp -avr ../overlay .
+mv overlay/build.sh build.sh
+mv overlay/repositories.conf repositories.conf
