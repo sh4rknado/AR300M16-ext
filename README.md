@@ -645,3 +645,10 @@ Firmware source code : https://github.com/gl-inet/openwrt
 LAMP Stack: https://openwrt.org/docs/guide-user/services/webserver/lamp#lighttpd1
 
 Lighthttpd: https://openwrt.org/docs/guide-user/services/webserver/lighttpd
+
+WiFi Pineapple Cloner : https://github.com/xchwarze/wifi-pineapple-cloner
+
+WiFi pineaplle Pannel : https://github.com/xchwarze/wifi-pineapple-panel
+
+WiFi pinneapple Reverse Ingeneering : https://samy.link/blog/build-your-own-wifi-pineapple-tetra-for-7
+
