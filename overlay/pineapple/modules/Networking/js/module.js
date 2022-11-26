@@ -5,7 +5,7 @@ registerController('NetworkingRouteController', ['$api', '$scope', '$timeout', f
     $scope.routeInterfaces = [];
 
 
-    $scope.getRoute = (function(){
+    $scope.reloadData = (function(){
         $api.request({
             module: 'Networking',
             action: 'getRoutingTable'
@@ -37,7 +37,7 @@ registerController('NetworkingRouteController', ['$api', '$scope', '$timeout', f
             routeInterface: $scope.routeInterface
         }, function(response) {
             if (response.success === true) {
-                $scope.getRoute();
+                $scope.reloadData();
                 $scope.updatedRoute = true;
                 $timeout(function(){
                     $scope.updatedRoute = false;
@@ -46,11 +46,11 @@ registerController('NetworkingRouteController', ['$api', '$scope', '$timeout', f
         });
     });
 
-    $scope.getRoute();
-
+    //$scope.reloadData();
 }]);
 
 registerController('NetworkingAccessPointsController', ['$api', '$scope', '$timeout', function($api, $scope, $timeout) {
+    $scope.loading = false;
     $scope.apConfigurationSaved = false;
     $scope.apConfigurationError = "";
     $scope.apAvailableChannels = [];
@@ -59,6 +59,7 @@ registerController('NetworkingAccessPointsController', ['$api', '$scope', '$time
         selectedChannel: "1",
         openSSID: "",
         hideOpenAP: false,
+        disableOpenAP: false,
         managementSSID: "",
         managementKey: "",
         disableManagementAP: false,
@@ -85,12 +86,14 @@ registerController('NetworkingAccessPointsController', ['$api', '$scope', '$time
         })
     });
 
-    $scope.getAPConfiguration = (function() {
+    $scope.reloadData = (function() {
+        $scope.loading = true;
         $api.request({
             module: "Networking",
             action: "getAPConfig"
         }, function(response) {
             if (response.error === undefined) {
+                $scope.loading = false;
                 $scope.apConfig = response;
                 if ($scope.apConfig['selectedChannel'] === true) {
                     $scope.apConfig['selectedChannel'] = "1";
@@ -99,10 +102,10 @@ registerController('NetworkingAccessPointsController', ['$api', '$scope', '$time
         })
     });
 
-    $scope.getAPConfiguration();
+    //$scope.reloadData();
 }]);
 
-registerController('NetworkingClientModeController', ['$api', '$scope', '$timeout', function($api, $scope, $timeout) {
+registerController('NetworkingModeController', ['$api', '$scope', '$timeout', function($api, $scope, $timeout) {
     $scope.interfaces = [];
     $scope.selectedInterface = "";
     $scope.accessPoints = [];
@@ -112,13 +115,19 @@ registerController('NetworkingClientModeController', ['$api', '$scope', '$timeou
     $scope.connected = true;
     $scope.connecting = false;
     $scope.noNetworkFound = false;
+    $scope.loading = false;
+    $scope.info = '';
+    $scope.actions = '';
 
     $scope.getInterfaces = (function() {
+        $scope.interfaces = [];
+        $scope.actions = 'loading';
         $api.request({
             module: 'Networking',
             action: 'getClientInterfaces'
         }, function(response) {
             if (response.error === undefined) {
+                $scope.actions = '';
                 $scope.interfaces = response;
                 $scope.selectedInterface = $scope.interfaces[0];
             }
@@ -154,7 +163,7 @@ registerController('NetworkingClientModeController', ['$api', '$scope', '$timeou
         }, function() {
             $scope.key = "";
             $timeout(function() {
-                $scope.checkConnection();
+                $scope.reloadData();
                 $scope.connecting = false;
             }, 10000);
         });
@@ -166,6 +175,7 @@ registerController('NetworkingClientModeController', ['$api', '$scope', '$timeou
             action: 'checkConnection'
         }, function(response) {
             if (response.error === undefined) {
+                $scope.loading = false;
                 if (response.connected) {
                     $scope.connected = true;
                     $scope.connectedInterface = response.interface;
@@ -197,7 +207,47 @@ registerController('NetworkingClientModeController', ['$api', '$scope', '$timeou
         });
     });
 
-    $scope.checkConnection();
+    $scope.interfaceActions = (function(type, wlan) {
+        $scope.actions = 'loading';
+        $api.request({
+            module: 'Networking',
+            action: 'interfaceActions',
+            type: type,
+            interface: wlan
+        }, function(response) {
+            if (response.error === undefined) {
+                $scope.actions = response;
+
+                // reload interfaces in monitor command cases
+                if (type === 3 || type === 4) {
+                    $scope.getInterfaces();
+                }
+            }
+        });
+    });
+
+    $scope.getInfoData = (function(type) {
+        $scope.info = 'loading';
+        $api.request({
+            module: 'Networking',
+            action: 'getInfoData',
+            type: type
+        }, function(response) {
+            if (response.error === undefined) {
+                $scope.info = response;
+            }
+        });
+    });
+
+    $scope.reloadData = (function() {
+        $scope.loading = true;
+        $scope.checkConnection();
+        if ($scope.connected) {
+            $scope.getInterfaces();
+        }
+    });
+
+    $scope.reloadData();
 }]);
 
 registerController('NetworkingFirewallController', ['$api', '$scope', '$timeout', function($api, $scope, $timeout) {
@@ -206,17 +256,7 @@ registerController('NetworkingFirewallController', ['$api', '$scope', '$timeout'
     $scope.WANUIAccess = false;
     $scope.device = '';
 
-    $scope.getDevice = (function() {
-        $api.request({
-            module: 'Configuration',
-            action: 'getDevice'
-        }, function(response) {
-            $scope.device = response.device;
-        });
-    });
-    $scope.getDevice();
-
-    $scope.getFirewallConfig = (function() {
+    $scope.reloadData = (function() {
         $api.request({
             module: 'Networking',
             action: 'getFirewallConfig'
@@ -244,22 +284,31 @@ registerController('NetworkingFirewallController', ['$api', '$scope', '$timeout'
         })
     });
 
-    $scope.getFirewallConfig();
+    $api.onDeviceIdentified(function(device, scope) {
+        scope.device = device;
+    }, $scope);
+
+    //$scope.reloadData();
 }]);
 
 registerController('NetworkingMACAddressesController', ['$api', '$scope', '$timeout', function($api, $scope, $timeout) {
     $scope.interfaces = [];
-    $scope.selectedInterface = "wlan0";
+    $scope.selectedInterface = "";
     $scope.newMac = "";
     $scope.modifyingMAC = false;
+    $scope.forceReload = false;
+    $scope.loading = false;
 
-    $scope.getMacData = (function() {
+    $scope.reloadData = (function() {
+        $scope.loading = true;
         $api.request({
             module: 'Networking',
             action: 'getMacData'
         }, function(response) {
             if (response.error === undefined) {
+                $scope.loading = false;
                 $scope.interfaces = response;
+                $scope.selectedInterface = Object.keys(response)[0];
             }
         });
     });
@@ -270,13 +319,14 @@ registerController('NetworkingMACAddressesController', ['$api', '$scope', '$time
             module: 'Networking',
             action: 'setMac',
             interface: $scope.selectedInterface,
-            mac: $scope.newMac
+            mac: $scope.newMac,
+            forceReload: $scope.forceReload
         }, function(response) {
             if (response.error === undefined) {
                 $scope.newMac = "";
                 $timeout(function(){
                     $scope.modifyingMAC = false;
-                    $scope.getMacData();
+                    $scope.reloadData();
                 }, 6000);
             }
         });
@@ -287,13 +337,14 @@ registerController('NetworkingMACAddressesController', ['$api', '$scope', '$time
         $api.request({
             module: 'Networking',
             action: 'setRandomMac',
-            interface: $scope.selectedInterface
+            interface: $scope.selectedInterface,
+            forceReload: $scope.forceReload
         }, function(response) {
             if (response.error === undefined) {
                 $scope.newMac = "";
                 $timeout(function(){
                     $scope.modifyingMAC = false;
-                    $scope.getMacData();
+                    $scope.reloadData();
                 }, 6000);
             }
         });
@@ -310,29 +361,34 @@ registerController('NetworkingMACAddressesController', ['$api', '$scope', '$time
                 $scope.newMac = "";
                 $timeout(function(){
                     $scope.modifyingMAC = false;
-                    $scope.getMacData();
+                    $scope.reloadData();
                 }, 6000);
             }
         });
     });
 
-    $scope.getMacData();
+    $scope.reloadData();
 }]);
 
 registerController('NetworkingAdvancedController', ['$api', '$scope', '$timeout', function($api, $scope, $timeout) {
+    $scope.loading = false;
     $scope.hostnameUpdated = false;
     $scope.wirelessReset = false;
+    $scope.wirelessUpdated = false;
     $scope.data = {
         hostname: "Pineapple",
-        ifconfig: ""
+        wireless: ""
     };
 
     $scope.reloadData = (function() {
+        $scope.loading = true;
+        $scope.data['wireless'] = 'Loading...';
         $api.request({
             module: 'Networking',
             action: 'getAdvancedData'
         }, function(response) {
             if (response.error === undefined) {
+                $scope.loading = false;
                 $scope.data = response;
             }
         });
@@ -348,7 +404,7 @@ registerController('NetworkingAdvancedController', ['$api', '$scope', '$timeout'
                 $scope.hostnameUpdated = true;
                 $timeout(function(){
                     $scope.hostnameUpdated = false;
-                }, 2000);
+                }, 3000);
             }
         });
     });
@@ -361,113 +417,63 @@ registerController('NetworkingAdvancedController', ['$api', '$scope', '$timeout'
             if (response.error === undefined) {
                 $scope.wirelessReset = true;
                 $timeout(function(){
+                    $scope.reloadData();
                     $scope.wirelessReset = false;
-                }, 5000);
+                }, 3000);
             }
         });
     });
 
-    $scope.reloadData();
+    $scope.saveWirelessConfig = (function() {
+        $api.request({
+            module: 'Networking',
+            action: 'saveWirelessConfig',
+            wireless: $scope.data['wireless']
+        }, function(response) {
+            if (response.success === true) {
+                $scope.wirelessUpdated = true;
+                $timeout(function(){
+                    $scope.reloadData();
+                    $scope.wirelessUpdated = false;
+                }, 3000);
+            }
+        });
+    });
+
+    //$scope.reloadData();
 }]);
 
 registerController("OUILookupController", ['$api', '$scope', '$timeout', '$http', function($api, $scope, $timeout, $http) {
     $scope.macAddress = "";
     $scope.vendor = "";
-    $scope.OUIDBPresent = false;
 
-    $scope.isOUIPresent = function () {
-        return localStorage.getItem("ouiText") !== null;
-    };
+    $scope.isOUIPresent = $api.ouiPresent;
 
     $scope.downloadOUIDatabase = function () {
-        if (typeof(Storage) === "undefined") {
-            return false;
-        }
-        var ouiText = localStorage.getItem("ouiText");
-        if (ouiText === null) {
-            $scope.gettingOUI = true;
-            $http.get('https://www.wifipineapple.com/oui.txt').then(
-                function (response) {
-                    localStorage.setItem("ouiText", response.data);
-                    $scope.populateDB();
-                },
-                function () {
-                    $api.request({
-                        module: "Networking",
-                        action: "getOUI"
-                    }, function (response) {
-                        if (response.error === undefined) {
-                            localStorage.setItem("ouiText", response.ouiText);
-                            $scope.populateDB();
-                        } else {
-                            return false;
-                        }
-                    });
-                });
-        }
-        return true;
-    };
-
-    $scope.populateDB = function () {
+        $scope.gettingOUI = true;
         $scope.ouiLoading = true;
-        var request = window.indexedDB.open("pineapple", 1);
-
-        request.onupgradeneeded = function (event) {
-            var db = event.target.result;
-            var objectStore = db.createObjectStore("oui", {keyPath: "macPrefix"});
-            var text = localStorage.getItem("ouiText");
-            var pos = 0;
-            do {
-                var line = text.substring(pos, text.indexOf("\n", pos + 1)).replace('\n', '');
-                var arr = [line.substring(0, 6), line.substring(6)];
-                objectStore.add({
-                    macPrefix: arr[0],
-                    name: arr[1]
-                });
-                pos += line.length + 1;
-            } while (text.indexOf("\n", pos + 1) !== -1);
-        };
-        $scope.ouiLoading = false;
+        $api.loadOUIFile((function() {
+            $scope.ouiLoading = false;
+        }));
     };
 
     $scope.lookupMACAddress = function() {
-        $scope.ouiLoading = true;
-        if (!$scope.isOUIPresent()) {
+        if (!$api.ouiPresent()) {
             return;
         }
-        var request = window.indexedDB.open("pineapple", 1);
-        request.onsuccess = function() {
-            var db = request.result;
-            var mac = convertMACAddress($scope.macAddress);
-            var prefix = mac.substring(0, 8).replace(/:/g, '');
-            var transaction = db.transaction("oui");
-            var objectStore = transaction.objectStore("oui");
-            var lookupReq = objectStore.get(prefix);
-            lookupReq.onerror = function () {
-                window.indexedDB.deleteDatabase("pineapple");
-                $scope.vendor = "Error retrieving OUI";
-            };
-            lookupReq.onsuccess = function () {
-                if (lookupReq.result) {
-                    $scope.vendor = lookupReq.result.name;
-                } else {
-                    $scope.vendor = "Unknown MAC prefix";
-                }
-            };
+
+        $scope.ouiLoading = true;
+        var mac = convertMACAddress($scope.macAddress.trim());
+        $api.lookupOUI(mac, (function(text) {
+            $scope.vendor = text;
             $scope.ouiLoading = false;
-        }
+        }));
     };
 
     $scope.removeOUIDatabase = function() {
-        localStorage.removeItem('ouiText');
-        window.indexedDB.deleteDatabase('pineapple').onsuccess = function() {
-            $scope.success = true;
+        $api.deleteOUI((function() {
             $scope.ouiLoading = false;
             $scope.gettingOUI = false;
-            $timeout(function() {
-                $scope.success = false;
-            }, 2000);
-        };
+        }));
     };
-
 }]);

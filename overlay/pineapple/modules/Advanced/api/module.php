@@ -5,6 +5,9 @@ class Advanced extends SystemModule
     private $dbConnection;
 
     const DATABASE = "/etc/pineapple/pineapple.db";
+    const UP_PATH = "/tmp/upgrade.bin";
+    const UP_FLAG = "/tmp/upgradeDownloaded";
+    const UP_PATCH = "/tmp/hotpatch.patch";
 
     public function __construct($request)
     {
@@ -113,7 +116,6 @@ class Advanced extends SystemModule
     {
         exec('lsusb', $lsusb);
         $lsusb = implode("\n", $lsusb);
-
         $this->response = array('lsusb' => $lsusb);
     }
 
@@ -147,60 +149,80 @@ class Advanced extends SystemModule
 
     private function checkForUpgrade()
     {
-        $device = $this->getDevice();
-        $upgradeData = @file_get_contents("https://www.wifipineapple.com/{$device}/upgrades");
-
+        $upgradeData = @file_get_contents(self::REMOTE_URL . "/json/upgrades.json");
         if ($upgradeData !== false) {
-            $upgradeData = json_decode($upgradeData);
+            $upgradeData = json_decode($upgradeData, true);
             if (json_last_error() === JSON_ERROR_NONE) {
-                if ($this->compareFirmwareVersion($upgradeData->version) === true) {
-                    if ($upgradeData->hotpatch != null) {
-                        $hotpatch = base64_decode($upgradeData->hotpatch);
-                        file_put_contents($hotpatch, "/tmp/hotpatch.patch");
+                if ($this->compareFirmwareVersion($upgradeData['version']) === true) {
+                    $board = $this->getBoard();
+                    if ($upgradeData['hotpatch'] != null) {
+                        $hotpatch = base64_decode($upgradeData['hotpatch']);
+                        file_put_contents($hotpatch, self::UP_PATCH);
+                    } else if ($board && isset($upgradeData['updates'][ $board ])) {
+                        $download = $upgradeData['updates'][ $board ];
+                        $upgradeData = array_merge($upgradeData, $download);
                     }
+
+                    unset($upgradeData['updates']);
                     $this->response = array("upgrade" => true, "upgradeData" => $upgradeData);
                 } else {
                     $this->error = "No upgrade found.";
                 }
             }
         } else {
-            $this->error = "Error connecting to WiFiPineapple.com. Please check your connection.";
+            $this->error = "Error connecting to " . self::REMOTE_NAME . ". Please check your connection.";
         }
-
     }
 
     private function downloadUpgrade()
     {
-        if (file_exists('/tmp/hotpatch.patch')) {
-            exec("cd / && patch < /tmp/hotpatch.patch");
+        if (file_exists(self::UP_PATCH)) {
+            exec("cd / && patch < " . self::UP_PATCH);
         }
-        $version = $this->request->version;
-        $device = $this->getDevice();
-        @unlink("/tmp/upgrade.bin");
-        @unlink("/tmp/upgradeDownloaded");
-        $this->execBackground("wget 'https://www.wifipineapple.com/{$device}/upgrades/{$version}' -O /tmp/upgrade.bin && touch /tmp/upgradeDownloaded");
+
+        @unlink(self::UP_PATH);
+        @unlink(self::UP_FLAG);
+        $url = escapeshellarg($this->request->upgradeUrl);
+        $this->execBackground("wget {$url} -O " . self::UP_PATH . " && touch " . self::UP_FLAG);
         $this->response = array("success" => true);
     }
 
     private function getDownloadStatus()
     {
-        if (file_exists("/tmp/upgradeDownloaded")) {
-            if (hash_file('sha256', '/tmp/upgrade.bin') == $this->request->checksum) {
+        if (file_exists(self::UP_FLAG)) {
+            $fileHash = hash_file('sha256', self::UP_PATH);
+            if ((bool)$this->request->isManuelUpdate) {
+                $bytes = filesize(self::UP_PATH);
+                $sz = 'BKMGTP';
+                $factor = floor((strlen($bytes) - 1) / 3);
+  
+                $this->response = array(
+                    "completed" => true,
+                    "sha256" => $fileHash,
+                    "downloaded" => sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor]
+                );
+            } else if ($fileHash == $this->request->checksum) {
                 $this->response = array("completed" => true);
             } else {
                 $this->error = "Checksum mismatch";
             }
         } else {
-            $this->response = array("completed" => false, "downloaded" => filesize('/tmp/upgrade.bin'));
+            $this->response = array(
+                "completed" => false,
+                "downloaded" => filesize(self::UP_PATH)
+            );
         }
     }
 
     private function performUpgrade()
     {
-        if (file_exists('/tmp/upgrade.bin')) {
-            $size = escapeshellarg(filesize('/tmp/upgrade.bin') - 33);
-            exec("dd if=/dev/null of=/tmp/upgrade.bin bs=1 seek={$size}");
-            $this->execBackground("sysupgrade -n /tmp/upgrade.bin");
+        if (file_exists(self::UP_PATH)) {
+            $params = "-n";
+            if ($this->request->keepSettings) {
+                $params = "";
+            }
+
+            $this->execBackground("sysupgrade {$params} " . self::UP_PATH);
             $this->response = array("success" => true);
         } else {
             $this->error = "Upgrade failed.";
@@ -246,6 +268,7 @@ class Advanced extends SystemModule
                 $this->response = array("valid" => true);
             }
         }
+
         $this->response = array("valid" => false);
     }
 

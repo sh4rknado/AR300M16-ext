@@ -87,7 +87,7 @@ uci set firewall.allowws.proto='tcp'
 uci set firewall.allowws.dest_port='1337'
 uci set firewall.allowws.target='ACCEPT'
 uci set firewall.allowws.family='ipv4'
-
 uci set firewall.allowws.enabled='1'
+
 uci commit firewall
 exit 0

@@ -2,6 +2,7 @@ registerController('ReconController', ['$api', '$scope', '$rootScope', '$interva
     $scope.accessPoints = [];
     $scope.unassociatedClients = [];
     $scope.outOfRangeClients = [];
+    $scope.outOfRangeClientsCount = 0;
     $scope.scans = [];
     $scope.selectedScan = "";
     $scope.loadedScan = null;
@@ -26,6 +27,7 @@ registerController('ReconController', ['$api', '$scope', '$rootScope', '$interva
     $scope.running = false;
     $scope.pineAPDRunning = true;
     $scope.pineAPDStarting = false;
+    $scope.pineAPDStatus = null;
     $scope.paused = false;
     $scope.reverseSort = false;
     $scope.loading = false;
@@ -57,6 +59,7 @@ registerController('ReconController', ['$api', '$scope', '$rootScope', '$interva
         $scope.accessPoints = data['ap_list'];
         $scope.unassociatedClients = data['unassociated_clients'];
         $scope.outOfRangeClients = data['out_of_range_clients'];
+        $scope.outOfRangeClientsCount = Object.keys(data['out_of_range_clients']).length;
     }
 
     function checkScanStatus() {
@@ -109,12 +112,12 @@ registerController('ReconController', ['$api', '$scope', '$rootScope', '$interva
             action: 'startPineAPDaemon'
         }, function(response){
             $scope.pineAPDStarting = false;
-            if (response.error === undefined) {
+            if (response.message === undefined) {
                 $scope.pineAPDRunning = true;
                 $scope.startScan();
-                $scope.error = null;
+                $scope.pineAPDStatus = null;
             } else {
-                $scope.error = response.error;
+                $scope.pineAPDStatus = response.message;
             }
         });
     };
@@ -324,7 +327,8 @@ registerController('ReconController', ['$api', '$scope', '$rootScope', '$interva
         $scope.loadingScan = true;
         $api.request({
             module: 'Recon',
-            action: 'getScans'
+            action: 'getScans',
+            from: 'displayScan'
         }, function(response) {
             if(response.error === undefined) {
                 $scope.scans = response.scans;

@@ -12,6 +12,8 @@ abstract class Module
     protected $moduleClass;
     protected $error;
     protected $streamFunction;
+    const REMOTE_NAME = "GitHub.com";
+    const REMOTE_URL = "https://raw.githubusercontent.com/xchwarze/wifi-pineapple-community/main";
 
     abstract public function route();
 
@@ -94,6 +96,11 @@ abstract class Module
         return \helper\getDevice();
     }
 
+    protected function getBoard()
+    {
+        return \helper\getBoard();
+    }
+
     protected function getMacFromInterface($interface)
     {
         return \helper\getMacFromInterface($interface);
@@ -117,11 +124,11 @@ abstract class Module
 
         $destination = $installToSD ? '--dest sd' : '';
         $dependencyName = escapeshellarg($dependencyName);
-
         if (!$this->checkDependency($dependencyName)) {
             exec("opkg update");
             exec("opkg install {$dependencyName} {$destination}");
         }
+
         return $this->checkDependency($dependencyName);
     }
 

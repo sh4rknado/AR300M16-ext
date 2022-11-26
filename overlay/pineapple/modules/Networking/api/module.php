@@ -81,8 +81,8 @@ class Networking extends SystemModule
                 $this->disconnect();
                 break;
 
-            case 'getOUI':
-                $this->getOUI();
+            case 'genOUIProcess':
+                $this->genOUIProcess();
                 break;
 
             case 'getFirewallConfig':
@@ -92,6 +92,18 @@ class Networking extends SystemModule
             case 'setFirewallConfig':
                 $this->setFirewallConfig();
                 break;
+
+            case 'saveWirelessConfig':
+                $this->saveWirelessConfig();
+                break;
+
+            case 'getInfoData':
+                $this->getInfoData();
+                break;
+
+            case 'interfaceActions':
+                $this->interfaceActions();
+                break;
         }
     }
 
@@ -100,13 +112,13 @@ class Networking extends SystemModule
         exec('ifconfig | grep encap:Ethernet | awk "{print \$1}"', $routeInterfaces);
         exec('route', $routingTable);
         $routingTable = implode("\n", $routingTable);
-        $this->response = array('routeTable' => $routingTable, 'routeInterfaces' => $routeInterfaces);
+        $this->response = ['routeTable' => $routingTable, 'routeInterfaces' => $routeInterfaces];
     }
 
     private function restartDNS()
     {
         $this->execBackground('/etc/init.d/dnsmasq restart');
-        $this->response = array("success" => true);
+        $this->response = ["success" => true];
     }
 
     private function updateRoute()
@@ -115,13 +127,15 @@ class Networking extends SystemModule
         $routeIP = escapeshellarg($this->request->routeIP);
         exec("route del default");
         exec("route add default gw {$routeIP} {$routeInterface}");
-        $this->response = array("success" => true);
+        $this->response = ["success" => true];
     }
 
     private function getAdvancedData()
     {
-        exec("ifconfig -a", $ifconfig);
-        $this->response = array("hostname" => gethostname(), "ifconfig" => implode("\n", $ifconfig));
+        $this->response = [
+            "hostname" => gethostname(),
+            "wireless" => file_get_contents('/etc/config/wireless')
+        ];
     }
 
     private function setHostname()
@@ -129,7 +143,7 @@ class Networking extends SystemModule
         exec("uci set system.@system[0].hostname=" . escapeshellarg($this->request->hostname));
         exec("uci commit system");
         exec("echo $(uci get system.@system[0].hostname) > /proc/sys/kernel/hostname");
-        $this->response = array("success" => true);
+        $this->response = ["success" => true];
     }
 
     private function resetWirelessConfig()
@@ -171,10 +185,10 @@ class Networking extends SystemModule
         $this->response = $interfaceHelper->getMacData();
     }
 
-    private function setMac($random)
+    private function setMac($force_random)
     {
         $interfaceHelper = new \helper\Interfaces();
-        $this->response = $interfaceHelper->setMac($random, $this->request->interface, $this->request->mac);
+        $this->response = $interfaceHelper->setMac($force_random, $this->request->interface, $this->request->mac, $this->request->forceReload);
     }
 
     private function resetMac()
@@ -227,18 +241,20 @@ class Networking extends SystemModule
 
     private function getOUI()
     {
-        $data = file_get_contents("https://www.wifipineapple.com/oui.txt");
+        $data = file_get_contents(self::REMOTE_URL . "/oui/oui.txt");
         if ($data !== null) {
-            $this->response = array("ouiText" => implode("\n", $data));
+            $this->response = ["ouiText" => implode("\n", $data)];
         } else {
-            $this->error = "Failed to download OUI file from WiFiPineapple.com";
+            $this->error = "Failed to download OUI file from " . self::REMOTE_NAME;
         }
     }
 
     private function getFirewallConfig()
     {
-        $this->response = array("allowWANSSH" => $this->uciGet("firewall.allowssh.enabled"),
-                                "allowWANUI" => $this->uciGet("firewall.allowui.enabled"));
+        $this->response = [
+            "allowWANSSH" => $this->uciGet("firewall.allowssh.enabled"),
+            "allowWANUI" => $this->uciGet("firewall.allowui.enabled")
+        ];
     }
 
     private function setFirewallConfig()
@@ -250,6 +266,53 @@ class Networking extends SystemModule
         $this->uciSet("firewall.allowws.enabled", $ui);
         exec('/etc/init.d/firewall restart');
 
-        $this->response = array("success" => true);
+        $this->response = ["success" => true];
+    }
+
+    private function saveWirelessConfig()
+    {
+        if (isset($this->request->wireless)) {
+            file_put_contents('/etc/config/wireless', $this->request->wireless);
+            $this->execBackground('wifi');
+            $this->response = ["success" => true];
+        }
+    }
+
+    private function getInfoData()
+    {
+        switch ((int)$this->request->type) {
+            case 2:
+                $command = 'iw dev';
+                break;
+            case 3:
+                $command = 'airmon-ng';
+                break;
+            default:
+                $command = 'ifconfig -a';
+        }
+
+        exec($command, $info);
+        $this->response = implode("\n", $info);
+    }
+
+    private function interfaceActions()
+    {
+        $interface = escapeshellarg($this->request->interface);
+        switch ((int)$this->request->type) {
+            case 2:
+                $command = "ifconfig {$interface} down";
+                break;
+            case 3:
+                $command = "airmon-ng start {$interface}";
+                break;
+            case 4:
+                $command = "airmon-ng stop {$interface}";
+                break;
+            default:
+                $command = "ifconfig {$interface} up";
+        }
+
+        exec($command, $info);
+        $this->response = implode("\n", $info);
     }
 }

@@ -1,127 +1,122 @@
 <div class="row">
-    <div class="col-md-7">
+    <div class="col-md-6">
         <div class="panel panel-default" ng-controller="PineAPSettingsController">
             <div class="panel-heading">
                 <h3 class="panel-title">
                     Configuration
                 </h3>
             </div>
-            <div class="panel-body" ng-hide="notifications.length">
-                <div class="col-md-9">
-                    <div class="row">
-                        <div class="input-group margin-bottom">
-                            <div class="checkbox">
-                                <label><input type="checkbox" value="" ng-model="settings.allowAssociations">
-                                    Allow Associations
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-group margin-bottom">
-                            <span class="input-group-addon">PineAP Daemon: {{ settings.pineAPDaemon ? "Enabled" : "Disabled" }}</span>
-                            <span class="input-group-btn">
-                                <button ng-disabled="pineAPenabling" class="btn btn-default" type="button"
-                                        ng-click="togglePineAP()">
-                                    <span ng-hide="pineAPenabling">Switch</span>
-                                    <img ng-show="pineAPenabling" src="img/throbber.gif">
-                                </button>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-group">
-                            <span class="input-group-addon">Autostart PineAP: {{ settings.autostartPineAP ? "Enabled" : "Disabled" }}</span>
-                            <span class="input-group-btn">
-                                <button ng-disabled="pineAPenabling" class="btn btn-default" type="button"
-                                        ng-click="toggleAutoStart()">
-                                    <span>Switch</span>
-                                </button>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-group">
-                            <div class="checkbox">
-                                <label><input type="checkbox" value="" ng-model="settings.logEvents">
-                                    Log PineAP Events
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label><input type="checkbox" value="" ng-model="settings.connectNotifications">
-                                    Client Connect Notifications
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label><input type="checkbox" value="" ng-model="settings.disconnectNotifications">
-                                    Client Disconnect Notifications
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label><input type="checkbox" value="" ng-model="settings.captureSSIDs">
-                                    Capture SSIDs to Pool
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label><input type="checkbox" value="" ng-model="settings.beaconResponses">
-                                    Beacon Response
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label><input type="checkbox" value="" ng-model="settings.broadcastSSIDs">
-                                    Broadcast SSID Pool
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-group margin-bottom">
-                            <span class="input-group-addon">Beacon Response Interval</span>
-                            <select class="form-control" ng-model="settings.responseInterval">
-                                <option value="LOW">Low</option>
-                                <option value="NORMAL">Normal</option>
-                                <option value="AGGRESSIVE">Aggressive</option>
-                            </select>
-                        </div>
-                        <div class="input-group margin-bottom">
-                            <span class="input-group-addon">Broadcast SSID Pool</span>
-                            <select class="form-control" ng-model="settings.broadcastInterval">
-                                <option value="LOW">Low</option>
-                                <option value="NORMAL">Normal</option>
-                                <option value="AGGRESSIVE">Aggressive</option>
-                            </select>
-                        </div>
-                        <br/>
-                        <div class="input-group margin-bottom">
-                            <span class="fixed-addon-width-3 input-group-addon">Source MAC</span>
-                            <input type="text" maxlength="17" class="form-control" ng-model="settings.sourceMAC">
-                        </div>
-                        <div class="input-group margin-bottom">
-                            <span class="fixed-addon-width-3 input-group-addon">Target MAC</span>
-                            <input type="text" maxlength="17" class="form-control" ng-model="settings.targetMAC">
-                        </div>
-                        <br/>
-                        <div class="input-group">
-                            <button class="btn btn-default" ng-hide="disableButton" ng-click="updateSettings()">Save
-                                PineAP Settings
-                            </button>
-                            <img src="img/throbber.gif" alt="throbber.gif" ng-show="disableButton">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel-footer" ng-hide="settings.pineAPDaemon && !saveAlert">
-                <div class="alert alert-info" ng-hide="settings.pineAPDaemon">
+            <div class="panel-body">
+                <div class="alert alert-info" ng-hide="loading || settings.pineAPDaemon">
                     <strong>Notice:</strong> In order to use some of these features, PineAP must first be enabled.
                 </div>
-                <div class="alert alert-success" ng-show="saveAlert">
-                    Autostart Configuration Saved
+                <img src="img/throbber.gif" alt="throbber.gif" ng-show="loading">
+
+                <div class="input-group">
+                    <div class="checkbox">
+                        <label><input type="checkbox" value="" ng-model="settings.allowAssociations">
+                            Allow Associations
+                        </label>
+                    </div>                
+                    <div class="checkbox">
+                        <label><input type="checkbox" value="" ng-model="settings.logEvents">
+                            Log PineAP Events
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label><input type="checkbox" value="" ng-model="settings.connectNotifications">
+                            Client Connect Notifications
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label><input type="checkbox" value="" ng-model="settings.disconnectNotifications">
+                            Client Disconnect Notifications
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label><input type="checkbox" value="" ng-model="settings.captureSSIDs">
+                            Capture SSIDs to Pool
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label><input type="checkbox" value="" ng-model="settings.beaconResponses">
+                            Beacon Response
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label><input type="checkbox" value="" ng-model="settings.broadcastSSIDs">
+                            Broadcast SSID Pool
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-group margin-bottom">
+                    <span class="input-group-addon" style="width: unset;">
+                        PineAP Daemon: {{ pineAPDaemonStatus }}
+                    </span>
+                    <span class="input-group-btn">
+                        <button ng-disabled="pineAPenabling" class="btn btn-default" type="button"
+                                ng-click="togglePineAP()">
+                            <span ng-hide="pineAPenabling">Switch</span>
+                            <img ng-show="pineAPenabling" src="img/throbber.gif">
+                        </button>
+                    </span>
+                </div>
+                <div class="input-group margin-bottom">
+                    <span class="input-group-addon" style="width: unset;">
+                        Autostart PineAP: {{ autostartPineAPStatus }}
+                    </span>
+                    <span class="input-group-btn">
+                        <button ng-disabled="pineAPenabling" class="btn btn-default" type="button"
+                                ng-click="toggleAutoStart()">
+                            <span>Switch</span>
+                        </button>
+                    </span>
+                </div>
+                <div class="input-group margin-bottom">
+                    <span class="input-group-addon">Beacon Response Interval</span>
+                    <select class="form-control" ng-model="settings.responseInterval">
+                        <option value="LOW">Low</option>
+                        <option value="NORMAL">Normal</option>
+                        <option value="AGGRESSIVE">Aggressive</option>
+                    </select>
+                </div>
+                <div class="input-group margin-bottom">
+                    <span class="input-group-addon">Broadcast SSID Pool</span>
+                    <select class="form-control" ng-model="settings.broadcastInterval">
+                        <option value="LOW">Low</option>
+                        <option value="NORMAL">Normal</option>
+                        <option value="AGGRESSIVE">Aggressive</option>
+                    </select>
+                </div>
+                <div class="input-group margin-bottom">
+                    <span class="fixed-addon-width-3 input-group-addon">Monitor Interface</span>
+                    <input type="text" maxlength="8" class="form-control" ng-model="settings.monitorInterface">
+                </div>
+                <div class="input-group margin-bottom">
+                    <span class="fixed-addon-width-3 input-group-addon">Source Interface</span>
+                    <input type="text" maxlength="8" class="form-control" ng-model="settings.sourceInterface">
+                </div>
+                <div class="input-group margin-bottom">
+                    <span class="fixed-addon-width-3 input-group-addon">Source MAC</span>
+                    <input type="text" maxlength="17" class="form-control" ng-model="settings.sourceMAC">
+                </div>
+                <div class="input-group margin-bottom">
+                    <span class="fixed-addon-width-3 input-group-addon">Target MAC</span>
+                    <input type="text" maxlength="17" class="form-control" ng-model="settings.targetMAC">
+                </div>
+                <br/>
+                <div class="input-group">
+                    <button class="btn btn-default" ng-hide="disableButton" ng-click="updateSettings()">
+                        Save PineAP Settings
+                    </button>
+                    <img src="img/throbber.gif" alt="throbber.gif" ng-show="disableButton">
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-5">
+    <div class="col-md-6">
         <div class="panel panel-default" ng-controller="PineAPPoolController">
             <div class="panel-heading">
                 <h3 class="panel-title">
@@ -321,7 +316,7 @@
                             <p class="text-center text-info" ng-show="chalrespdata.length == 0">No Challenge Response Data
                                 Available.</p>
                             <div class="table-responsive">
-                                <table ng-show="chalrespdata.length" class="table">
+                                <table class="table table-hover" ng-show="chalrespdata.length">
                                     <thead>
                                     <tr class="default-cursor">
                                         <th>Type</th>
@@ -345,7 +340,7 @@
                             <p class="text-center text-info" ng-show="basicdata.length == 0">No Basic Data
                                 Available.</p>
                             <div class="table-responsive">
-                                <table ng-show="basicdata.length" class="table">
+                                <table class="table table-hover" ng-show="basicdata.length">
                                     <thead>
                                     <tr class="default-cursor">
                                         <th>Type</th>
@@ -398,7 +393,7 @@
                     <br/>
                 </div>
                 <div class="table-responsive" ng-show="handshakes.length !== 0">
-                    <table class="table">
+                    <table class="table table-hover">
                         <thead>
                         <tr class="default-cursor">
                             <th>BSSID</th>

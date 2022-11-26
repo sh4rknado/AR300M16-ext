@@ -1,3 +1,7 @@
+body {
+    background-color: #f8f8f8;
+}
+
 .module-table > * > tr:nth-child(even) {
     background-color: #f5f5f5;
 }
@@ -32,9 +36,9 @@
 }
 
 .module-icon {
-     display: inline;
-     height: 24px;
-     width: 24px;
+    display: inline;
+    height: 24px;
+    width: 24px;
 }
 
 .fixed-addon-width {
@@ -76,7 +80,7 @@
 }
 
 .log-pre {
-    max-height: 300px;
+    max-height: 30vw;
 }
 
 .btn-fixed-length {
@@ -99,16 +103,12 @@
     font-weight: normal;
 }
 
-body {
-    background-color: #f8f8f8;
-}
-
 .logout {
     cursor: pointer;
 }
 
 .module-nav li a {
-    margin-left: 30px;
+    margin-left: 10px;
 }
 
 .module-nav li:hover {
@@ -129,24 +129,86 @@ body {
     background-color: #eee;
 }
 
-@media(min-width:768px) {
-    .sidebar {
-        z-index: 1;
-        position: absolute;
-        width: 250px;
-        margin-top: 51px;
-    }
+.sidebar .active a {
+    color: #555;
+    font-weight: bold;
+}
 
+.sidebar, .module-content {
+    -webkit-transition: margin 200ms ease-out;
+    -moz-transition: margin 200ms ease-out;
+    -o-transition: margin 200ms ease-out;
+    transition: margin 200ms ease-out;
+}
+
+@media(min-width:768px) {
     .module-content {
-        position: inherit;
-        margin: 0 0 0 250px;
+        position: absolute;
+        width: calc(100% - 50px);
+        margin-left: 50px;
         padding: 15px 30px;
         border-left: 1px solid #e7e7e7;
     }
 
-    .navbar-top-links {
-        margin-left: 10px;
+    .sidebar {
+        width: 200px;
+        height: 100%;
+        margin-left: -150px;
+        float: left;
+        z-index: 99;
+        min-height: 50px;
+        border-right: 1px solid #e7e7e7;
+        position: relative;
     }
+
+    .sidebar a {
+        padding-right: 12px !important;
+    }
+
+    .sidebar .navbar-collapse, .sidebar .container-fluid {
+        padding: 0;
+    }
+
+    .sidebar li {
+        width: 100%;
+    }
+
+    /*.sidebar:hover,*/
+    .sidebar-toggle {
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 1200px) {
+    .module-content {
+        width: calc(100% - 200px);
+        margin-left: 200px;
+    }
+
+    .sidebar {
+        margin-left: 0;
+        float: left;
+    }
+
+    .sidebar-nav .module-text {
+        visibility: hidden !important;
+    }
+}
+
+.nav > li > a {
+    padding: 13px 15px;
+}
+
+.navbar {
+    margin-bottom: 0;
+}
+
+.navbar-default .navbar-nav > li > a:focus, .navbar-default .navbar-nav > li > a:hover {
+	background-color: #eee;
+}
+
+.navbar-header {
+    width: 100%;
 }
 
 .navbar-top-links {
@@ -156,10 +218,6 @@ body {
 
 .navbar-top-links li {
     display: inline-block;
-}
-
-.navbar {
-    margin-bottom: 0;
 }
 
 .navbar-top-links .dropdown-menu li {
@@ -194,12 +252,32 @@ body {
         width: 300px !important;
         max-width: 300px !important;
     }
+
     .dropdown-menu-top li a {
         white-space: normal !important;
     }
 
     .dropdown-menu-logout {
         max-width: 50px !important;
+    }
+
+    .navbar-toggle {
+        float: left;
+        margin-top: 10px;
+        margin-left: 15px;
+    }
+
+    .navbar-brand {
+        padding: 15px 15px 15px 0;
+    }
+
+    .module-icon.pull-right {
+        float: left !important;
+        margin-right: 10px;
+    }
+
+    .tab-pane {
+        padding: 15px !important;
     }
 }
 
@@ -216,8 +294,53 @@ body {
 }
 
 .brand-text::after {
-    content: "WiFi Pineapple";
+    content: 'WiFi Pineapple';
     padding-top: 3px;
     padding-left: 5px;
     float: right;
 }
+
+#accordion .panel-heading .panel-title:after {
+    content: url('/img/chevron_up.svg');
+    width: 20px;
+    float: right;
+    color: grey;
+}
+
+#accordion .panel-heading.collapsed .panel-title:after {
+    content: url('/img/chevron_down.svg');
+}
+
+.menu-toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.tab-pane {
+    padding: 25px;
+    border: 1px solid #ddd;
+    border-top: 0;
+    border-radius: 0 0 4px 4px;
+}
+
+.nav-tabs > li.active > a {
+    font-weight: bold;
+}
+
+.nav-tabs > li > a {
+    border-color: #eee #eee #ddd;
+    background-color: #eeeeee78;
+}
+
+.sidebar-nav .module-text {
+    text-align: center;
+    visibility: visible;
+}
+
+/* Use this for menu auto open on hover
+    .sidebar:hover {
+        margin-left: 0;
+    }
+    .menu-toggle {
+        display: none !important;
+    }
+*/

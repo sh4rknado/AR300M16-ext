@@ -12,15 +12,6 @@ function resizeModuleContent() {
     }
 }
 
-function collapseNavBar() {
-    var width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
-    if (width < 768) {
-        $('div.navbar-collapse').removeClass('in');
-    } else {
-        $('div.navbar-collapse').addClass('in');
-    }
-}
-
 function convertMACAddress(mac) {
     var pattern = /([-: ])/igm;
     return mac.replace(pattern, ":");
@@ -57,6 +48,15 @@ function selectElement(elem) {
     var selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(selectRange);
+}
+
+function loadActiveTabData() {
+    $('.tab-pane.active .controller').each(function(index) {
+        var controller = angular.element( $(this)[0] ).scope();
+        if (typeof controller.reloadData === "function") { 
+            controller.reloadData();
+        }
+    });
 }
 
 $('html').click(function(e){
