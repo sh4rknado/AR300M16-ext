@@ -2,9 +2,7 @@
 #current_folder="$(pwd)"
 
 # clean all old files
-rm ./tmp -rf
-rm -rfv openwrt-imagebuilder
-#git clean -xfd
+bash clean.sh
 
 # Making files
 ./scripts/feeds update -a
